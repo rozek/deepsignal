@@ -38,11 +38,10 @@ const throwOnMutation = () => {
 	throw new Error("Don't mutate the signals directly.");
 };
 
-const get =
-	(isArrayOfSignals: boolean) =>
+const get = (isArrayOfSignals: boolean) =>
 	(target: object, fullKey: string, receiver: object): unknown => {
 		if (peeking) return Reflect.get(target, fullKey, receiver);
-		let returnSignal = isArrayOfSignals || fullKey[0] === "$";
+		let returnSignal = isArrayOfSignals || (fullKey[0] === "$") && (fullKey !== '$');
 		if (!isArrayOfSignals && returnSignal && Array.isArray(target)) {
 			if (fullKey === "$") {
 				if (!arrayToArrayOfSignals.has(target))
@@ -51,7 +50,9 @@ const get =
 			}
 			returnSignal = fullKey === "$length";
 		}
+		
 		if (!proxyToSignals.has(receiver)) proxyToSignals.set(receiver, new Map());
+		
 		const signals = proxyToSignals.get(receiver);
 		const key = returnSignal ? fullKey.replace(rg, "") : fullKey;
 		if (
@@ -65,7 +66,10 @@ const get =
 		} else {
 			let value = Reflect.get(target, key, receiver);
 			if (returnSignal && typeof value === "function") return;
+			
 			if (typeof key === "symbol" && wellKnownSymbols.has(key)) return value;
+			// TODO: doesn't "typeof key" always yield "string"?
+			
 			if (!signals.has(key)) {
 				if (shouldProxy(value)) {
 					if (!objToProxy.has(value))
@@ -80,10 +84,11 @@ const get =
 
 const objectHandlers = {
 	get: get(false),
+	
 	set(target: object, fullKey: string, val: any, receiver: object): boolean {
 		if (!proxyToSignals.has(receiver)) proxyToSignals.set(receiver, new Map());
 		const signals = proxyToSignals.get(receiver);
-		if (fullKey[0] === "$") {
+		if ((fullKey[0] === "$") && (fullKey !== '$')) {
 			if (!(val instanceof Signal)) throwOnMutation();
 			const key = fullKey.replace(rg, "");
 			signals.set(key, val);
@@ -122,7 +127,7 @@ const objectHandlers = {
 	},
 
 	deleteProperty(target: object, key: string): boolean {
-		if (key[0] === "$") throwOnMutation();
+		if ((key[0] === "$") && (key !== '$')) throwOnMutation();
 		const signals = proxyToSignals.get(objToProxy.get(target));
 		const result = Reflect.deleteProperty(target, key);
 		if (signals && signals.has(key)) signals.get(key).value = undefined;
