@@ -22,5 +22,8 @@
 			"import": "./dist/deepsignal-react.mjs",
 			"require": "./dist/deepsignal-react.js"
 		}
+	},
+	"devDependencies": {
+		"@types/react": "^18.2.14"
 	}
 }
