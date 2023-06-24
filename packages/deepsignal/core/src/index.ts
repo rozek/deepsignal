@@ -95,16 +95,32 @@ const objectHandlers = {
 					objToProxy.set(val, createProxy(val, objectHandlers));
 				internal = objToProxy.get(val);
 			}
-			const isNew = !(fullKey in target);
 			const result = Reflect.set(target, fullKey, val, receiver);
 			if (!signals.has(fullKey)) signals.set(fullKey, signal(internal));
 			else signals.get(fullKey).value = internal;
-			if (isNew && objToIterable.has(target)) objToIterable.get(target).value++;
 			if (Array.isArray(target) && signals.has("length"))
 				signals.get("length").value = target.length;
 			return result;
 		}
 	},
+		
+	defineProperty (target:object, key:string, descriptor:object):boolean {
+		if ((key[0] === "$") && (key !== '$')) throwOnMutation();
+	  
+		const isNew = ! (key in target)
+
+	  const signals = proxyToSignals.get(objToProxy.get(target))
+		const Result:boolean = Reflect.defineProperty(target,key,descriptor)
+			if ('value' in descriptor) {
+				if (signals && signals.has(key)) signals.get(key).value = descriptor.value
+			}
+
+			if (isNew && objToIterable.has(target)) {
+				objToIterable.get(target).value++
+			}
+		return Result
+	},
+
 	deleteProperty(target: object, key: string): boolean {
 		if (key[0] === "$") throwOnMutation();
 		const signals = proxyToSignals.get(objToProxy.get(target));
@@ -113,9 +129,10 @@ const objectHandlers = {
 		objToIterable.has(target) && objToIterable.get(target).value++;
 		return result;
 	},
+	
 	ownKeys(target: object): (string | symbol)[] {
 		if (!objToIterable.has(target)) objToIterable.set(target, signal(0));
-		objToIterable.get(target).value;
+		objToIterable.get(target).value = objToIterable.get(target).value
 		return Reflect.ownKeys(target);
 	},
 };
