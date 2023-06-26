@@ -24,7 +24,9 @@ export const peek = <
 ): RevertDeepSignal<RevertDeepSignalObject<T>[K]> => {
 	peeking = true;
 	const value = obj[key];
-	peeking = false;
+	try {
+		peeking = false;
+	} catch (e) {}
 	return value as RevertDeepSignal<RevertDeepSignalObject<T>[K]>;
 };
 
@@ -50,9 +52,9 @@ const get = (isArrayOfSignals: boolean) =>
 			}
 			returnSignal = fullKey === "$length";
 		}
-		
+
 		if (!proxyToSignals.has(receiver)) proxyToSignals.set(receiver, new Map());
-		
+
 		const signals = proxyToSignals.get(receiver);
 		const key = returnSignal ? fullKey.replace(rg, "") : fullKey;
 		if (
@@ -66,10 +68,10 @@ const get = (isArrayOfSignals: boolean) =>
 		} else {
 			let value = Reflect.get(target, key, receiver);
 			if (returnSignal && typeof value === "function") return;
-			
+
 			if (typeof key === "symbol" && wellKnownSymbols.has(key)) return value;
 			// TODO: doesn't "typeof key" always yield "string"?
-			
+
 			if (!signals.has(key)) {
 				if (shouldProxy(value)) {
 					if (!objToProxy.has(value))
@@ -84,7 +86,7 @@ const get = (isArrayOfSignals: boolean) =>
 
 const objectHandlers = {
 	get: get(false),
-	
+
 	set(target: object, fullKey: string, val: any, receiver: object): boolean {
 		if (!proxyToSignals.has(receiver)) proxyToSignals.set(receiver, new Map());
 		const signals = proxyToSignals.get(receiver);
@@ -108,10 +110,10 @@ const objectHandlers = {
 			return result;
 		}
 	},
-		
+
 	defineProperty (target:object, key:string, descriptor:object):boolean {
 		if ((key[0] === "$") && (key !== '$')) throwOnMutation();
-	  
+
 		const isNew = ! (key in target)
 
 	  const signals = proxyToSignals.get(objToProxy.get(target))
@@ -134,10 +136,10 @@ const objectHandlers = {
 		objToIterable.has(target) && objToIterable.get(target).value++;
 		return result;
 	},
-	
+
 	ownKeys(target: object): (string | symbol)[] {
 		if (!objToIterable.has(target)) objToIterable.set(target, signal(0));
-		objToIterable.get(target).value = objToIterable.get(target).value
+		objToIterable.get(target).value = objToIterable.get(target).value;
 		return Reflect.ownKeys(target);
 	},
 };
