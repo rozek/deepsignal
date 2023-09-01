@@ -1,5 +1,23 @@
 # deepsignal
 
+## 1.3.6
+
+### Patch Changes
+
+- [#42](https://github.com/luisherranz/deepsignal/pull/42) [`79db35b`](https://github.com/luisherranz/deepsignal/commit/79db35bebe4002c5d4e4ad77156b9ba609e14633) Thanks [@luisherranz](https://github.com/luisherranz)! - Add `preact` as peer dependency back and mark them as optional.
+
+## 1.3.5
+
+### Patch Changes
+
+- [#40](https://github.com/luisherranz/deepsignal/pull/40) [`6284cd6`](https://github.com/luisherranz/deepsignal/commit/6284cd6db785a4ec48a6e2987fd6ea745cc36bdd) Thanks [@luisherranz](https://github.com/luisherranz)! - Use `@preact/signals` dependencies as peer dependencies.
+
+## 1.3.4
+
+### Patch Changes
+
+- [`a846d10`](https://github.com/luisherranz/deepsignal/commit/a846d10ae776d3d77ffc8c4d28b63eafa1662b1b) Thanks [@luisherranz](https://github.com/luisherranz)! - Avoid side-effects on the `ownKeys` trap.
+
 ## 1.3.3
 
 ### Patch Changes
