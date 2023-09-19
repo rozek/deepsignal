@@ -171,65 +171,26 @@ const shouldProxy = (val: any): boolean => {
 	  return proxies.has(Value)
 	}
 
-/**** Array.pop ****/
+/**** SignalSavvy ****/
 
-  const Array_pop = Array.prototype.pop
-  Array.prototype.pop = function ():any {
-    if (ValueIsDeeplyObserved(this)) {
-      let Result
-        batch(() => { Result = Array_pop.call(this) })
-      return Result
-    } else {
-      return Array_pop.call(this)
-    }
+  function SignalSavvy (ArrayMethod:Function):Function {
+  	return function (this:any[], ...Arguments:any[]):any {
+	    if (ValueIsDeeplyObserved(this)) {
+	      let Result
+	        batch(() => { Result = ArrayMethod.call(this,...Arguments) })
+	      return Result
+	    } else {
+	      return ArrayMethod.call(this,...Arguments)
+	    }
+  	}
   }
-
-/**** Array.push ****/
-
-// Array.push works out of the box
-
-/**** Array.shift ****/
-
-  const Array_shift = Array.prototype.shift
-  Array.prototype.shift = function ():any {
-    if (ValueIsDeeplyObserved(this)) {
-      let Result
-        batch(() => { Result = Array_shift.call(this) })
-      return Result
-    } else {
-      return Array_shift.call(this)
-    }
-  }
-
-/**** Array.unshift ****/
-
-  const Array_unshift = Array.prototype.unshift
-  Array.prototype.unshift = function (...Arguments:any[]):number {
-    if (ValueIsDeeplyObserved(this)) {
-      let Result
-        batch(() => { Result = Array_unshift.call(this,...Arguments) })
-// @ts-ignore TS2352 no conversion necessary
-      return Result
-    } else {
-      return Array_unshift.call(this,...Arguments)
-    }
-  }
-
-/**** Array.splice ****/
-
-  const Array_splice = Array.prototype.splice
-  Array.prototype.splice = function (...Arguments:any[]):any[] {
-    if (ValueIsDeeplyObserved(this)) {
-      let Result
-// @ts-ignore TS2345 te given kind of argument passing is ok
-        batch(() => { Result = Array_splice.call(this,...Arguments) })
-// @ts-ignore TS2352 no conversion necessary
-      return Result
-    } else {
-// @ts-ignore TS2345 te given kind of argument passing is ok
-      return Array_splice.call(this,...Arguments)
-    }
-  }
+  
+  ;[                                     // 'push' works properly out-of-the-box
+    'copyWithin','fill','pop','reverse','shift','sort','splice','unshift'
+  ].forEach((MethodName:string) => {
+// @ts-ignore TS7015 just assume proper typing for built-in array methods
+  	Array.prototype[MethodName] = SignalSavvy(Array.prototype[MethodName])
+  })
 
 /** TYPES **/
 
