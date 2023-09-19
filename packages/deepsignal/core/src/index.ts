@@ -1,4 +1,4 @@
-import { computed, signal, Signal } from "@preact/signals-core";
+import { batch, computed, signal, Signal } from "@preact/signals-core";
 
 const proxyToSignals = new WeakMap();
 const objToProxy = new WeakMap();
@@ -164,6 +164,72 @@ const shouldProxy = (val: any): boolean => {
 		(globalThis as any)[val.constructor.name] === val.constructor;
 	return (!isBuiltIn || supported.has(val.constructor)) && !proxies.has(val);
 };
+
+/**** additional support for some Array methods ****/
+
+	export function ValueIsDeeplyObserved (Value:any):boolean {
+	  return proxies.has(Value)
+	}
+
+/**** Array.pop ****/
+
+  const Array_pop = Array.prototype.pop
+  Array.prototype.pop = function ():any {
+    if (ValueIsDeeplyObserved(this)) {
+      let Result
+        batch(() => { Result = Array_pop.call(this) })
+      return Result
+    } else {
+      return Array_pop.call(this)
+    }
+  }
+
+/**** Array.push ****/
+
+// Array.push works out of the box
+
+/**** Array.shift ****/
+
+  const Array_shift = Array.prototype.shift
+  Array.prototype.shift = function ():any {
+    if (ValueIsDeeplyObserved(this)) {
+      let Result
+        batch(() => { Result = Array_shift.call(this) })
+      return Result
+    } else {
+      return Array_shift.call(this)
+    }
+  }
+
+/**** Array.unshift ****/
+
+  const Array_unshift = Array.prototype.unshift
+  Array.prototype.unshift = function (...Arguments:any[]):number {
+    if (ValueIsDeeplyObserved(this)) {
+      let Result
+        batch(() => { Result = Array_unshift.call(this,...Arguments) })
+// @ts-ignore TS2352 no conversion necessary
+      return Result
+    } else {
+      return Array_unshift.call(this,...Arguments)
+    }
+  }
+
+/**** Array.splice ****/
+
+  const Array_splice = Array.prototype.splice
+  Array.prototype.splice = function (...Arguments:any[]):any[] {
+    if (ValueIsDeeplyObserved(this)) {
+      let Result
+// @ts-ignore TS2345 te given kind of argument passing is ok
+        batch(() => { Result = Array_splice.call(this,...Arguments) })
+// @ts-ignore TS2352 no conversion necessary
+      return Result
+    } else {
+// @ts-ignore TS2345 te given kind of argument passing is ok
+      return Array_splice.call(this,...Arguments)
+    }
+  }
 
 /** TYPES **/
 
