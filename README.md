@@ -12,6 +12,8 @@ Use [Preact signals](https://github.com/preactjs/signals) with the interface of 
 > * while `x.$prop` is already used to access the preact signal for property `x.prop`, `x.$length` to get a signal for the length of array `x`, and `x.$[i]` to get a signal for the array element at index `i`, an "ordinary" object (i.e., not an array!) may now also contain a property with the name `$` which will be handled like any other property
 > * `Object.defineProperty(...)` is handled as well
 > * in order to avoid unnecessary "reactions" from Array methods `copyWithin`,`fill`,`pop`,`reverse`,`shift`,`sort`,`splice` and `unshift`, these methods have been modified to handle observed arrays more efficiently
+> * "shallowing" is already supported (using changes from [pull request #38](https://github.com/luisherranz/deepsignal/pull/38))
+> * this version also already contains a (potential) fix for [issue #45](https://github.com/luisherranz/deepsignal/issues/45)
 
 ---
 
