@@ -1,6 +1,8 @@
 import { Signal } from "@preact/signals-core";
 export declare const deepSignal: <T extends object>(obj: T) => DeepSignal<T>;
 export declare const peek: <T extends DeepSignalObject<object>, K extends FilterSignals<keyof T>>(obj: T, key: K) => RevertDeepSignal<RevertDeepSignalObject<T>[K]>;
+export declare function shallow<T extends object>(obj: T): T;
+export declare function shallow<T extends DeepSignalObject<object>, K extends keyof RevertDeepSignalObject<T>>(obj: T, key: K): RevertDeepSignal<RevertDeepSignalObject<T>[K]>;
 /**** additional support for some Array methods ****/
 export declare function ValueIsDeeplyObserved(Value: any): boolean;
 /** TYPES **/
