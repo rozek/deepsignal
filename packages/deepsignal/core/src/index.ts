@@ -92,7 +92,7 @@ const get = (isArrayOfSignals: boolean) =>
 				}
 				signals.set(key, signal(value));
 			}
-			signals.get(key).value = value
+			if (! returnSignal) { signals.get(key).value = value }
 		}
 		return returnSignal ? signals.get(key) : signals.get(key).value;
 	};
@@ -180,7 +180,7 @@ const shouldProxy = (val: any): boolean => {
 /**** additional support for some Array methods ****/
 
 	export function ValueIsDeeplyObserved (Value:any):boolean {
-	  return ignore.has(Value)
+	  return objToProxy.has(Value)
 	}
 
 /**** SignalSavvy ****/
