@@ -3,7 +3,7 @@ import { batch, computed, signal, Signal } from "@preact/signals-core";
 const proxyToSignals = new WeakMap();
 const objToProxy = new WeakMap();
 const arrayToArrayOfSignals = new WeakMap();
-const proxies = new WeakSet();
+const ignore = new WeakSet();
 const objToIterable = new WeakMap();
 const rg = /^\$/;
 let peeking = false;
@@ -30,9 +30,22 @@ export const peek = <
 	return value as RevertDeepSignal<RevertDeepSignalObject<T>[K]>;
 };
 
+export function shallow<T extends object>(obj: T): T;
+
+export function shallow<
+	T extends DeepSignalObject<object>,
+	K extends keyof RevertDeepSignalObject<T>
+>(obj: T, key: K): RevertDeepSignal<RevertDeepSignalObject<T>[K]>;
+
+export function shallow(obj: any, key?: any): any {
+	const o = key ? peek(obj, key) : obj;
+	ignore.add(o);
+	return o;
+}
+
 const createProxy = (target: object, handlers: ProxyHandler<object>) => {
 	const proxy = new Proxy(target, handlers);
-	proxies.add(proxy);
+	ignore.add(proxy);
 	return proxy;
 };
 
@@ -68,7 +81,6 @@ const get = (isArrayOfSignals: boolean) =>
 		} else {
 			let value = Reflect.get(target, key, receiver);
 			if (returnSignal && typeof value === "function") return;
-
 			if (typeof key === "symbol" && wellKnownSymbols.has(key)) return value;
 			// TODO: doesn't "typeof key" always yield "string"?
 
@@ -113,7 +125,6 @@ const objectHandlers = {
 
 	defineProperty (target:object, key:string, descriptor:object):boolean {
 		if ((key[0] === "$") && (key !== '$')) throwOnMutation();
-
 		const isNew = ! (key in target)
 
 	  const signals = proxyToSignals.get(objToProxy.get(target))
@@ -162,13 +173,13 @@ const shouldProxy = (val: any): boolean => {
 		typeof val.constructor === "function" &&
 		val.constructor.name in globalThis &&
 		(globalThis as any)[val.constructor.name] === val.constructor;
-	return (!isBuiltIn || supported.has(val.constructor)) && !proxies.has(val);
+	return (!isBuiltIn || supported.has(val.constructor)) && !ignore.has(val);
 };
 
 /**** additional support for some Array methods ****/
 
 	export function ValueIsDeeplyObserved (Value:any):boolean {
-	  return proxies.has(Value)
+	  return ignore.has(Value)
 	}
 
 /**** SignalSavvy ****/
