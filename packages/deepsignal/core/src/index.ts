@@ -92,6 +92,7 @@ const get = (isArrayOfSignals: boolean) =>
 				}
 				signals.set(key, signal(value));
 			}
+			signals.get(key).value = value
 		}
 		return returnSignal ? signals.get(key) : signals.get(key).value;
 	};
